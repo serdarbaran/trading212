@@ -3,8 +3,6 @@ import requests
 from trading212_py.config import API_VERSION,ACCOUNT_TYPE,API_KEY
 from typing import Optional,Dict
 
-#BASE_URL = "https://api.t212.com/v1"
-
 class T212:
     def __init__(self) -> None:
         self._base_url: str = f'https://{ACCOUNT_TYPE}.trading212.com/api/{API_VERSION}'
