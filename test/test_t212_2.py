@@ -3,7 +3,7 @@ from unittest.mock import patch, MagicMock
 
 # Import the T212 class from trading212_py/t212.py
 # from trading212_py.t212 import T212
-from trading212_py.t212 import T212
+from trading212py.t212 import T212
 
 class TestT212(unittest.TestCase):
 

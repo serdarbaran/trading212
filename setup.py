@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='trading212_py',
-    version='1.1.0',
+    name='trading212py',
+    version='0.1.0',
     packages=find_packages(),
     install_requires=[
         # Add your dependencies here
@@ -18,5 +18,5 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.8',
 )

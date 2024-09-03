@@ -3,7 +3,7 @@ from enum import Enum
 from datetime import datetime
 from typing import List, Optional, Dict
 from pydantic import BaseModel
-
+from dataclasses import dataclass
 
 class Order(BaseModel):
     ticker: str #"AAPL_US_EQ"
@@ -21,10 +21,11 @@ class Order(BaseModel):
     type: Optional[str]
     value: Optional[float]
 
+@dataclass
 class Dividend(BaseModel):
-    gained: float
-    inCash: float
-    reinvested: float
+    gained: Optional[float]
+    inCash: Optional[float]
+    reinvested: Optional[float]
 
 class Result(BaseModel):
     investedValue: float

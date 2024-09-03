@@ -1,13 +1,7 @@
 import os
 from dotenv import dotenv_values
-import configparser
 
-config = configparser.ConfigParser()
-config.read(filenames='trading212_py/T212.INI')
-
-MODULE_NAME: str = config.get('DEFAULT','NAME')
-API_VERSION: str = config.get('GENERAL', 'API_VERSION')
-
+API_VERSION:str = 'v0'
 
 InProduction = True
 if os.getenv('IN_PRODUCTION', 'false') == 'false':
@@ -21,5 +15,5 @@ if os.getenv('IN_PRODUCTION', 'false') == 'false':
     InProduction = False
 else: pass
 
-ACCOUNT_TYPE= env_config.get('ACCOUNT_TYPE', 'live')
-API_KEY= env_config.get('T212_API_KEY', None)
+ACCOUNT_TYPE:str= env_config.get('ACCOUNT_TYPE', 'live')
+API_KEY:str = env_config.get('T212_DEMO_API_KEY', None) if ACCOUNT_TYPE == 'demo' else env_config.get('T212_API_KEY', None)

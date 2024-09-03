@@ -1,11 +1,13 @@
-from trading212_py.t212 import T212
-import trading212_py
-import trading212_py.t212
-
+from trading212py import T212,Dividend
 def main():
 
-    t212 = trading212_py.t212.T212()
-    print(t212.get_account_details())
+    t212 = T212()
+    print(t212.account_metadata())
+    print(t212.account_cash())
+    print(t212.pie_list())
+
+    dividend = Dividend()
+    
 
 if __name__ == '__main__':
     main()
