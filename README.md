@@ -33,7 +33,7 @@ Example: `T212_API_KEY='1234.....abcd'`
 ## Usage
 
 ```
-from trading212py.t212 import T212
+from trading212py import T212
 
 def main():
 
@@ -42,6 +42,20 @@ def main():
 
 if __name__ == '__main__':
     main()
+```
+
+### Orders
+```python
+newLimitOrder: Order = Order(limitPrice=90.23, quantity=0.1, ticker='AAPL_US_EQ', timeValidity='DAY')
+print(t212.place_limit_order(payload=newLimitOrder))
+
+>>> creationTime='2024-09-07T03:05:32.603+03:00' filledQuantity=0.0 filledValue=None id=19150387579 status=<OrderStatus.NEW: 'NEW'> strategy='QUANTITY' type='LIMIT' value=None limitPrice=90.23 quantity=0.1 ticker='AAPL_US_EQ' timeValidity=None stopPrice=None
+
+
+newMarketOrder: Order = Order(quantity=0.1, ticker='AAPL_US_EQ')
+t212.place_market_order(payload=newMarketOrder)
+
+>>>
 ```
 
 
