@@ -1,11 +1,13 @@
 # /bin/bash
 import requests
+from requests.exceptions import HTTPError
 from trading212py.config import API_VERSION,ACCOUNT_TYPE,API_KEY
 from typing import Literal, Optional,Dict,Any
 from trading212py.base import (Position, AccountMetadata, AccountCash,
                                Exchange, Exchanges, Instrument, Instruments, Pie, PieListItem, PieList,
                                Order, HistoricalItem,HistoricalOrderResponseModel,
-                               DividendResponseModel, ExportReport)
+                               DividendResponseModel, ExportReport,ExportPayload,ExportReportResponse,
+                               Transactions,TransactionPayload,CreatePie)
 from functools import wraps
 import json
 from trading212py.decorators import debug,jsondump,unpacker
@@ -39,14 +41,18 @@ class T212:
                 json=json,
                 params=query_params, **kwargs
             )
-            if not response.ok: response.raise_for_status()
-            return response.json() if response.content else None
-        except requests.exceptions.RequestException as e:
-            if method == 'DELETE' and response.status_code == 404:
-                print(f"Order has not been found and double check if it is deleted.")
-                return response.status_code # Return None or a custom message indicating successful handling of 404
-            else:
-                raise Exception(f"Error making request: {e}")
+            response.raise_for_status()           
+        except HTTPError as http_err:
+            print(f'{http_err}')
+        except Exception as e:
+            if method == 'DELETE':
+                if response.status_code == 404:
+                    return response.text # Return None or a custom message indicating successful handling of 404
+                else: print(f"Error making request: {response.text} - {e}")
+            else: print(f"Error making request: {response.text} - {e}")
+        else:
+            return response.json() if len(response.json())!=0 else None
+
 
     # Account Data
     def _get_account_metadata(self):
@@ -74,7 +80,7 @@ class T212:
         return self.__request(method='GET', endpoint='/equity/pies')
     
     def _post_create_pie(self, payload):
-        return self.__request(method='POST', endpoint='/equity/pies', json=payload)
+        return self.__request(method='POST', endpoint='/equity/pies', query_params=payload)
     
     def _delete_delete_pie(self, pie_id):
         return self.__request(method='DELETE', endpoint=f'/equity/pies/{pie_id}')
@@ -120,33 +126,28 @@ class T212:
     def _post_exports(self,payload):
         return self.__request(method='GET', endpoint=f'/history/exports', query_params=payload)
     
-    def _get_transactions(self):
-        return self.__request(method='GET', endpoint='/history/transactions')
+    def _get_transactions(self,payload):
+        return self.__request(method='GET', endpoint='/history/transactions', query_params=payload)
     
 
     # Methods
     # Account Data
     @unpacker(cls=AccountMetadata)
-    def account_metadata(self) -> list[AccountMetadata]:
+    def account_metadata(self):
         '''Returns the account metadata, including account type, currency, and other account details.'''  
         response: requests.Response = self._get_account_metadata()
-        return [AccountMetadata(**item) for item in response]
+        return self._get_account_metadata()
     
     @unpacker(cls=AccountCash)
     def account_cash(self) -> list[AccountCash]:
         '''Returns the account cash balance.'''
         return self._get_account_cash()
-        # response = self._get_account_cash()
-        # return [AccountCash(**item) for item in response]
 
     # Personal Portfolio
     @unpacker(cls=Position, clsList=True)
     def portfolio(self):
         '''Returns the portfolio, including the positions and metadata for each position.
         '''
-        # response: requests.Response = self._get_portfolio()
-        # positions: Positions = [Position(**item) for item in response]
-        # return positions
         return self._get_portfolio()
 
     @unpacker(cls=Position)
@@ -156,60 +157,55 @@ class T212:
         Args:
             ticker (str): The ticker symbol of the position to retrieve.
         '''
-        #return Position(**self._get_portfolio_ticker(ticker=ticker))
         return self._get_portfolio_ticker(ticker=ticker)
 
     # Instruments Metadata
     @unpacker(cls=Exchange, clsList=True)
     def exchange_list(self) -> Exchanges:
         '''Returns the list of exchanges supported by Trading212.'''
-        # response: requests.Response = self._get_exchange_list()
-        # exchanges: Exchanges = [Exchange(**item) for item in response]
-        # return exchanges
         return self._get_exchange_list()
 
     @unpacker(cls=Instrument, clsList=True)
     def instrument_list(self) -> Instruments:
         '''Returns the list of instruments supported by Trading212.'''
-        # result: requests.Response = self._get_instrument_list()
-        # instruments: Instruments = [Instrument(**item) for item in result]
-        # return instruments
         return self._get_instrument_list()
 
     # Pies
     @unpacker(cls=PieListItem, clsList=True)
     def pie_list(self) -> PieList:
-        '''Returns the list of Pies (Portfolio Investment Environments) created by XXX user.'''
-        # response: requests.Response = self._get_pie_list()
-        # pieList:PieList = [PieListItem(**item) for item in response]
-        # return pieList
+        '''Returns the list of Pies (Portfolio Investment Environments) by the user.
+        API Ref: https://t212public-api-docs.redoc.ly/#operation/getAll
+        '''
         return self._get_pie_list()
 
-
-    def create_pie(self, payload):
+    @unpacker(cls=Pie, clsList=True)
+    def create_pie(self, payload:CreatePie) -> Pie:
         '''Creates a new Pie (Portfolio Investment Environment) with the provided payload.
+        Ref: https://t212public-api-docs.redoc.ly/#operation/create
 
         Args:
             payload (dict): The payload containing the details of the new Pie.
         '''
-        return self._post_create_pie(payload=payload)
+        return self._post_create_pie(payload=payload.model_dump(exclude_none=True))
     
-    def delete_pie(self, pie_id) -> int:
+    def delete_pie(self, pie_id:int=None) -> int:
         '''Deletes the Pie with the specified pie_id.
 
         Args:
             pie_id (str): The ID of the Pie to delete.
         '''
-        return self._delete_delete_pie(pie_id=pie_id)
+        if not pie_id: raise Exception(f"Provide {pie_id=}")
+        else: return self._delete_delete_pie(pie_id=pie_id)
 
     @unpacker(cls=Pie)
-    def pie(self, pie_id):
+    def pie(self, pie_id:int=None) -> Pie:
         '''Returns the details of the Pie with the specified pie_id.
 
         Args:
             pie_id (str): The ID of the Pie to retrieve.
         '''
-        return self._get_pie(pie_id=pie_id)
+        if not pie_id: raise Exception(f"Provide {pie_id=}")
+        else: return self._get_pie(pie_id=pie_id)
 
     def update_pie(self, pie_id, payload):
         '''Updates the Pie with the specified pie_id using the provided payload.
@@ -223,7 +219,7 @@ class T212:
     # Equity Orders
     @unpacker(cls=Order, clsList=True)
     def all_orders(self):
-        '''Returns all orders placed by XXX user.'''
+        '''Returns all orders placed by user.'''
         return self._get_all_orders()
 
     @unpacker(cls=Order)
@@ -268,7 +264,8 @@ class T212:
         Args:
             order_id (str): The ID of the order to cancel.
         '''
-        return self._delete_cancel_order(order_id=order_id)
+        if not order_id: raise Exception(f"Provide {order_id=}")
+        else: return self._delete_cancel_order(order_id=order_id)
 
     @unpacker(cls=Order)
     def order(self, order_id:int=None):
@@ -277,7 +274,7 @@ class T212:
         Args:
             order_id (str): The ID of the order to retrieve.
         '''
-        return self._get_order(order_id)
+        return self._get_order(order_id=order_id)
 
     # Historical Items
     @unpacker(cls=HistoricalOrderResponseModel)
@@ -318,16 +315,38 @@ class T212:
         '''Returns the list of exports.
         NOTE: THIS ENDPOINT IS NOT AVAILABLE FOR IN DEMO MODE.
         '''
-        return self._get_exports_list() if ACCOUNT_TYPE.upper()!='DEMO' else 'This endpoint is not available in demo mode.'
+        if ACCOUNT_TYPE.upper()=='DEMO': raise Exception(f"This endpoint is not available in {ACCOUNT_TYPE=} mode.")
+        else: return self._get_exports_list()
 
-    def exports(self, payload):
+    @unpacker(cls=ExportReportResponse)
+    def exports(self, payload:ExportPayload):
         '''Creates a new export with the provided payload.
 
         Args:
             payload (dict): The payload containing the details of the export.
+        
+        Example:
+            from trading212py.base import ExportPayload
+            payload = {
+                "dataIncluded": {
+                    "includeDividends": True,
+                    "includeInterest": True,
+                    "includeOrders": True,
+                    "includeTransactions": True
+                },
+                "timeFrom": "2019-08-24T14:15:22Z",
+                "timeTo": "2024-09-07T14:15:22Z"
+                }
+            print(t212.exports(payload=ExportPayload(**payload)))
         '''
-        return self._post_exports(payload=payload)
+        return self._post_exports(payload=payload.model_dump(exclude_none=True))
 
-    def transactions(self):
-        '''Returns the transactions.'''
-        return self._get_transactions()
+    @unpacker(cls=Transactions)
+    def transactions(self,payload:TransactionPayload):
+        '''Returns the transactions.
+        
+        Args:
+            cursor (str) = Pagination cursor
+            limit (int) = The maximum number of transactions to retrieve. Default: 20, Max items: 50
+        '''
+        return self._get_transactions(payload=payload.model_dump(exclude_none=True))

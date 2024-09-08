@@ -14,7 +14,12 @@ pip install trading212py
 Create a directory and call it .env
 Create two separate files called .secret and .shared
 
-![.env files structure](./notes/assets/image_env.png)
+```
+.env/
+|
+|- .secret
+|- .shared
+```
 
 #### Content of the .shared file
 Add `ACCOUNT_TYPE` variable.
@@ -50,12 +55,38 @@ newLimitOrder: Order = Order(limitPrice=90.23, quantity=0.1, ticker='AAPL_US_EQ'
 print(t212.place_limit_order(payload=newLimitOrder))
 
 >>> creationTime='2024-09-07T03:05:32.603+03:00' filledQuantity=0.0 filledValue=None id=19150387579 status=<OrderStatus.NEW: 'NEW'> strategy='QUANTITY' type='LIMIT' value=None limitPrice=90.23 quantity=0.1 ticker='AAPL_US_EQ' timeValidity=None stopPrice=None
+```
 
+Alternatively you can pass the json payload to the relevant Class.
+```python
+payload = {
+    "limitPrice":90.23,
+    "quantity":0.1,
+    "ticker":'AAPL_US_EQ',
+    "timeValidity"='DAY'
+}
+print(t212.place_limit_order(payload=Order(**payload)))
+```
 
+```python
 newMarketOrder: Order = Order(quantity=0.1, ticker='AAPL_US_EQ')
 t212.place_market_order(payload=newMarketOrder)
+```
 
->>>
+
+```python
+from trading212py.base import ExportPayload
+payload = {
+    "dataIncluded": {
+        "includeDividends": True,
+        "includeInterest": True,
+        "includeOrders": True,
+        "includeTransactions": True
+    },
+    "timeFrom": "2019-08-24T14:15:22Z",
+    "timeTo": "2024-09-07T14:15:22Z"
+    }
+print(t212.exports(payload=ExportPayload(**payload)))
 ```
 
 

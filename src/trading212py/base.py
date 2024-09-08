@@ -5,21 +5,32 @@ from typing import List, Optional, Dict,Any
 from pydantic import BaseModel
 from dataclasses import dataclass
 
-
 class OrderStatus(Enum): #TODO: #1 Not yet implemented. 
-    LOCAL = 'LOCAL'
-    NEW = 'NEW'
-    PENDING = "PENDIN"
-    COMPLETED = "COMPLETED"
+    LOCAL = "LOCAL"
+    UNCONFIRMED = "UNCONFIRMED"
+    CONFIRMED = "CONFIRMED"
+    NEW = "NEW"
+    CANCELLING = "CANCELLING"
     CANCELLED = "CANCELLED"
+    PARTIALLY_FILLED = "PARTIALLY_FILLED"
+    FILLED = "FILLED"
+    REJECTED = "REJECTED"
+    REPLACING = "REPLACING"
+    REPLACED = "REPLACED"
 
+
+class TransactionType(Enum):
+    WITHDRAW = "WITHDRAW" 
+    DEPOSIT = "DEPOSIT" 
+    FEE = "FEE"
+    TRANSFER = "TRANSFER"
 
 '''
 Account Data Classes
 '''
 class AccountMetadata(BaseModel):
-    id:int
-    currencyCode:str
+    id:Optional[int]
+    currencyCode:Optional[str]
 
 class AccountCash(BaseModel):
     free:float
@@ -88,9 +99,67 @@ class Instruments(BaseModel):
 Pie Classes Section
 '''
 # Pie
+class dividendCashAction(Enum):
+    REINVESTED = "REINVESTED"
+    TO_ACCOUNT_CASH = "TO_ACCOUNT_CASH"
+
+class Icon(Enum):
+    HOME = "Home"
+    PIGGY_BANK = "PiggyBank"
+    ICEBERG = "Iceberg"
+    AIRPLANE = "Airplane"
+    RV = "RV"
+    UNICORN = "Unicorn"
+    WHALE = "Whale"
+    CONVERTIBLE = "Convertible"
+    FAMILY = "Family"
+    COINS = "Coins"
+    EDUCATION = "Education"
+    BILLS_AND_COINS = "BillsAndCoins"
+    BILLS = "Bills"
+    WATER = "Water"
+    WIND = "Wind"
+    CAR = "Car"
+    BRIEFCASE = "Briefcase"
+    MEDICAL = "Medical"
+    LANDSCAPE = "Landscape"
+    CHILD = "Child"
+    VAULT = "Vault"
+    TRAVEL = "Travel"
+    CABIN = "Cabin"
+    APARTMENTS = "Apartments"
+    BURGER = "Burger"
+    BUS = "Bus"
+    ENERGY = "Energy"
+    FACTORY = "Factory"
+    GLOBAL = "Global"
+    LEAF = "Leaf"
+    MATERIALS = "Materials"
+    PILL = "Pill"
+    RING = "Ring"
+    SHIPPING = "Shipping"
+    STOREFRONT = "Storefront"
+    TECH = "Tech"
+    UMBRELLA = "Umbrella"
+    NONE = ''
+
+class PieIssueName(Enum):
+    DELISTED = "DELISTED"
+    SUSPENDED = "SUSPENDED"
+    NO_LONGER_TRADABLE = "NO_LONGER_TRADABLE"
+    MAX_POSITION_SIZE_REACHED = "MAX_POSITION_SIZE_REACHED"
+    APPROACHING_MAX_POSITION_SIZE = "APPROACHING_MAX_POSITION_SIZE"
+    COMPLEX_INSTRUMENT_APP_TEST_REQUIRED = "COMPLEX_INSTRUMENT_APP_TEST_REQUIRED"
+    NONE = ''
+
+class PieIssueTransactionType(Enum):
+    IRREVERSIBLE = "IRREVERSIBLE"
+    REVERSIBLE = "REVERSIBLE"
+    INFORMATIVE = "INFORMATIVE"
+
 class PieIssue(BaseModel):
-    name: Optional[str] = None
-    severity: Optional[str]= None
+    name: Optional[PieIssueName] = None
+    severity: Optional[PieIssueTransactionType] = None
 
 class Result(BaseModel):
     investedValue: Optional[float]= None
@@ -101,18 +170,17 @@ class Result(BaseModel):
 class PieInstrument(BaseModel):
     currentShare: Optional[float] = None
     expectedShare: Optional[float] = None
-    #issues: Optional[List[PieIssue]] = None
-    issues: Optional[Any] = None
+    issues: Optional[List[PieIssue]] = None
     ownedQuantity: Optional[float] = None
     result: Optional[Result] = None
-    ticker: str
+    ticker: str = None
 
-class Settings(BaseModel):
+class PieSettings(BaseModel):
     creationDate: Optional[str] = None
     dividendCashAction: Optional[str] = None
     endDate: Optional[str] = None
     goal: Optional[float] = None
-    icon: Optional[str] = None
+    icon: Optional[Icon] = None
     id: Optional[int] = None
     initialInvestment: Optional[float] = None
     instrumentShares: Optional[Dict[str, float]] = None
@@ -121,22 +189,36 @@ class Settings(BaseModel):
 
 class Pie(BaseModel):
     instruments: Optional[List[PieInstrument]] = None
-    settings: Optional[Settings] = None
+    settings: Optional[PieSettings] = None
 
+# Create pie
+class CreatePie(BaseModel):
+    dividendCashAction: str
+    endDate: str
+    goal: float
+    icon: str
+    instrumentShares: Dict[str, float]
+    name: str
 
 # Pie List
+class PieStatus(Enum):
+    """Status of the pie based on the set goal"""
+    AHEAD = "AHEAD"
+    ON_TRACK = "ON_TRACK"
+    BEHIND = "BEHIND"
+
 class DividendDetails(BaseModel):
-    gained:float
-    inCash:float
-    reinvested:float
+    gained:Optional[float]
+    inCash:Optional[float]
+    reinvested:Optional[float]
 
 class PieListItem(BaseModel):
-    cash:float
+    cash:Optional[float] # Amount of money put into the pie in account currency
     dividendDetails:DividendDetails
-    id:int
-    progress:Optional[float]
-    result:Result
-    status:Optional[str]
+    id:Optional[int]
+    progress:Optional[float] # Progress of the pie based on the set goal
+    result:Optional[Result]
+    status:Optional[PieStatus]
 
 class PieList(BaseModel):
     pies:List[PieListItem]
@@ -145,7 +227,7 @@ class PieList(BaseModel):
 Equity Orders Classes
 '''
 class Order(BaseModel):
-    creationTime: str = None
+    creationTime: Optional[str] = None
     filledQuantity: Optional[float] = None
     filledValue: Optional[float] = None
     id: Optional[int] = None
@@ -220,7 +302,7 @@ class DividendResponseModel(BaseModel):
     items: Optional[List[DividendItem]]
     nextPagePath: Optional[str]
 
-# Export
+# Export List
 class DataIncluded(BaseModel):
     includeDividends: bool
     includeInterest: bool
@@ -235,3 +317,33 @@ class ExportReport(BaseModel):
     timeFrom: Optional[datetime]
     timeTo: Optional[datetime]
     response: Optional[str]
+
+# Exports
+class DataIncluded(BaseModel):
+    includeDividends: bool
+    includeInterest: bool
+    includeOrders: bool
+    includeTransactions: bool
+
+class ExportPayload(BaseModel):
+    dataIncluded: DataIncluded
+    timeFrom: datetime
+    timeTo: datetime
+
+class ExportReportResponse(BaseModel):
+    reportId: Optional[int]
+
+# Transaction List
+class TransactionPayload(BaseModel):
+    cursor: str
+    limit: int = 20
+
+class TransactionItem(BaseModel):
+    amount: Optional[float]
+    dateTime: Optional[datetime]
+    reference: Optional[str]
+    type: Optional[TransactionType]
+
+class Transactions(BaseModel):
+    items: Optional[List[TransactionItem]]
+    nextPagePath: Optional[str]

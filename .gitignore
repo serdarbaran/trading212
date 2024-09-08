@@ -162,4 +162,3 @@ cython_debug/
 #.idea/
 
 app.py
-test_t212.py
