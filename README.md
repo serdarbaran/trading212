@@ -1,4 +1,4 @@
-# Trading212_py Module
+# Trading212py Module
 
 This is an unofficial Python client for the [Trading212 API](https://t212public-api-docs.redoc.ly/)
 ## Installation
