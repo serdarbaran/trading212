@@ -8,9 +8,7 @@ from trading212py.base import (Position, AccountMetadata, AccountCash,
                                Order, HistoricalItem,HistoricalOrderResponseModel,
                                DividendResponseModel, ExportReport,ExportPayload,ExportReportResponse,
                                Transactions,TransactionPayload,CreatePie)
-from functools import wraps
-import json
-from trading212py.decorators import debug,jsondump,unpacker
+from trading212py.decorators import unpacker
 
 class T212:
     def __init__(self) -> None:
@@ -20,10 +18,10 @@ class T212:
     
     def _get_api_key(self) -> str:
         try:
-            if API_KEY is None: raise Exception("T212_API_KEY environment variable has been retreived.")
+            if API_KEY is None: raise Exception("T212_API_KEY environment variable couln't be retreived.")
             else: return API_KEY
         except KeyError as e:
-            raise Exception(f"{e} - Please set the T212_API_KEY environment variable.")
+            raise Exception(f"{e} - Set T212_API_KEY environment variable.")
 
     def __request(self, method:str=None, endpoint:str=None, query_params=None, json:Optional[Dict]=None, **kwargs) -> requests.Response:
         try:
@@ -135,7 +133,6 @@ class T212:
     @unpacker(cls=AccountMetadata)
     def account_metadata(self):
         '''Returns the account metadata, including account type, currency, and other account details.'''  
-        response: requests.Response = self._get_account_metadata()
         return self._get_account_metadata()
     
     @unpacker(cls=AccountCash)
@@ -146,8 +143,7 @@ class T212:
     # Personal Portfolio
     @unpacker(cls=Position, clsList=True)
     def portfolio(self):
-        '''Returns the portfolio, including the positions and metadata for each position.
-        '''
+        '''Returns the portfolio, including the positions and metadata for each position.'''
         return self._get_portfolio()
 
     @unpacker(cls=Position)
