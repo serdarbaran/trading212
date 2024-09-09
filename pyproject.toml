@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "trading212py"
-version = "0.1.1"
+version = "0.1.2"
 description = "A Python client for the Trading212 public API."
 authors = [{name = "Serdar Baran", email = "none@g.com"}]
 readme = "README.md"
@@ -15,6 +15,12 @@ dependencies = [
     'python-dotenv==1.0.1',
     'pydantic == 2.8.2'
 ]
+
+[project.urls]
+Homepage = "https://github.com/serdarbaran/trading212"
+Documentation = "https://github.com/serdarbaran/trading212/blob/main/README.md"
+Repository = "https://github.com/serdarbaran/trading212"
+Issues = "https://github.com/serdarbaran/trading212/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
