@@ -1,26 +1,35 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "trading212py"
 version = "0.1.2"
 description = "A Python client for the Trading212 public API."
-authors = [{name = "Serdar Baran", email = "none@g.com"}]
+authors = ["Serdar Baran <none@g.com>"]
+license = "MIT"
 readme = "README.md"
-license = {text = "MIT"}
-requires-python = ">=3.12"
-dependencies = [
-    'requests==2.32.3',
-    'python-dotenv==1.0.1',
-    'pydantic == 2.8.2'
+homepage = "https://github.com/serdarbaran/trading212"
+repository = "https://github.com/serdarbaran/trading212"
+documentation = "https://github.com/serdarbaran/trading212/blob/main/README.md"
+keywords = ["trading212", "api", "client"]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+    "Topic:: Financial :: Investment :: ISA"
 ]
 
-[project.urls]
-Homepage = "https://github.com/serdarbaran/trading212"
-Documentation = "https://github.com/serdarbaran/trading212/blob/main/README.md"
-Repository = "https://github.com/serdarbaran/trading212"
-Issues = "https://github.com/serdarbaran/trading212/issues"
+[tool.poetry.dependencies]
+python = ">=3.12"
+requests = "2.32.3"
+python-dotenv = "1.0.1"
+pydantic = "2.8.2"
 
-[tool.setuptools.packages.find]
-where = ["src"]
+[tool.poetry.dev-dependencies]
+pytest = "^7.2"
+
+[tool.poetry.scripts]
+trading212py = "trading212py.cli:main"
+
+[tool.poetry.urls]
+"Issue Tracker" = "https://github.com/serdarbaran/trading212/issues"
