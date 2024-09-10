@@ -16,20 +16,34 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out the code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all tags
 
       - name: Set up Python and Poetry
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: echo "latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))" >> $GITHUB_ENV
+
+      - name: Check out the latest tag
+        run: git checkout ${{ env.latest_tag }}
+
+      - name: Update version in pyproject.toml
         run: |
-          pip install poetry
-          poetry install
+          sed -i "s/^version = \".*\"/version = \"${{ env.LATEST_TAG }}\"/" pyproject.toml
+        shell: bash
+
+      - name: Install dependencies
+        run: poetry install --no-root
 
       - name: Build the package
         run: poetry build
