@@ -5,17 +5,13 @@
 # They are provided by a third-party and are governed by
 # separate terms of service, privacy policy, and support
 # documentation.
-
 name: Upload Python Package
-
 on:
   release:
     types: [published]
-
 permissions:
   contents: read  # Required for checking out the repository
   id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
