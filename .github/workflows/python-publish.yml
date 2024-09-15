@@ -32,8 +32,7 @@ jobs:
           poetry install
           poetry build
 
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+
 
       - name: Clean up
         run: rm -rf dist build *.egg-info
