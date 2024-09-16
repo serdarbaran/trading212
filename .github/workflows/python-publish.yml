@@ -7,10 +7,18 @@
 # documentation.
 name: Upload Python Package
 
-on:
-  release:
-    types: [published]
+# on:
+#   release:
+#     types: [published]
 
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*.*.0'
+       
 permissions:
   contents: read
 
