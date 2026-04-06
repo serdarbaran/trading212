@@ -18,7 +18,7 @@ class T212:
     
     def _get_api_key(self) -> str:
         try:
-            if API_KEY is None: raise Exception("T212_API_KEY environment variable couln't be retreived.")
+            if API_KEY is None: raise Exception("T212_API_KEY environment variable couldn't be retreived.")
             else: return API_KEY
         except KeyError as e:
             raise Exception(f"{e} - Set T212_API_KEY environment variable.")
@@ -42,18 +42,12 @@ class T212:
             response.raise_for_status()           
         except HTTPError as http_err:
             print(f'{http_err}')
-        except Exception as e:
-            if method == 'DELETE':
-                if response.status_code == 404:
-                    return response.text # Return None or a custom message indicating successful handling of 404
-                else: print(f"Error making request: {response.text} - {e}")
-            else: print(f"Error making request: {response.text} - {e}")
         else:
             return response.json() if len(response.json())!=0 else None
 
 
     # Account Data
-    def _get_account_metadata(self):
+    def _get_account_metadata(self): #TODO: #3 It returns 429 Client Error: Too Many Requests for url: https://live.trading212.com/api/v0/equity/account/info
         return self.__request(method='GET', endpoint='/equity/account/info')
     
     def _get_account_cash(self):
@@ -80,7 +74,7 @@ class T212:
     def _post_create_pie(self, payload):
         return self.__request(method='POST', endpoint='/equity/pies', query_params=payload)
     
-    def _delete_delete_pie(self, pie_id):
+    def _delete_delete_pie(self, pie_id:int=None): #TODO API returns 400 "Bad Request" error. It looks like it is an issue on the client side or documentation error. 
         return self.__request(method='DELETE', endpoint=f'/equity/pies/{pie_id}')
 
     def _get_pie(self, pie_id):
@@ -171,6 +165,8 @@ class T212:
     def pie_list(self) -> PieList:
         '''Returns the list of Pies (Portfolio Investment Environments) by the user.
         API Ref: https://t212public-api-docs.redoc.ly/#operation/getAll
+
+        Args: None
         '''
         return self._get_pie_list()
 
@@ -188,7 +184,7 @@ class T212:
         '''Deletes the Pie with the specified pie_id.
 
         Args:
-            pie_id (str): The ID of the Pie to delete.
+            pie_id (int): The ID of the Pie to delete.
         '''
         if not pie_id: raise Exception(f"Provide {pie_id=}")
         else: return self._delete_delete_pie(pie_id=pie_id)
@@ -198,7 +194,7 @@ class T212:
         '''Returns the details of the Pie with the specified pie_id.
 
         Args:
-            pie_id (str): The ID of the Pie to retrieve.
+            pie_id (int): The ID of the Pie to retrieve.
         '''
         if not pie_id: raise Exception(f"Provide {pie_id=}")
         else: return self._get_pie(pie_id=pie_id)
@@ -207,7 +203,7 @@ class T212:
         '''Updates the Pie with the specified pie_id using the provided payload.
 
         Args:
-            pie_id (str): The ID of the Pie to update.
+            pie_id (int): The ID of the Pie to update.
             payload (dict): The payload containing the updated details of the Pie.
         '''
         return self._post_update_pie(pie_id=pie_id, payload=payload)
